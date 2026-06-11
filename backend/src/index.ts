@@ -1,21 +1,32 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import path from "path";
 
 import { clerkMiddleware } from "@clerk/express";
 import { clerkWebhookHandler } from "./webhooks/clerk";
 
 const app = express();
 
+app.use(express.json());
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGIN ?? "http://localhost:5173",
+}));
+app.use(clerkMiddleware());
+
+console.log("Public path:", path.join(__dirname, "../public"));
+
+app.use(express.static(path.join(__dirname, "../public")));
+
 const rawJson = express.raw({ type: "application/json", limit: "1mb" });
 
-// it's important that you don't parse the webhook event data, it should be in the raw format
 app.post("/webhooks/clerk", rawJson, (req, res) => {
   void clerkWebhookHandler(req, res);
 });
 
-app.use(express.json());
-app.use(cors());
-app.use(clerkMiddleware());
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, "../public", "index.html"));
+});
 
-app.listen(process.env.PORT, () => console.log("listening on port:", process.env.PORT));
+const PORT = process.env.PORT ?? 3000;
+app.listen(PORT, () => console.log("listening on port:", PORT));
