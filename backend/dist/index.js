@@ -21,7 +21,7 @@ const rawJson = express_1.default.raw({ type: "application/json", limit: "1mb" }
 app.post("/webhooks/clerk", rawJson, (req, res) => {
     void (0, clerk_1.clerkWebhookHandler)(req, res);
 });
-app.get('*', (_, res) => {
+app.get('/{*splat}', (_, res) => {
     res.sendFile(path_1.default.join(__dirname, "../public", "index.html"));
 });
 const PORT = process.env.PORT ?? 3000;
